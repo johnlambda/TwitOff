@@ -2,7 +2,7 @@
 from os import getenv
 import basilica
 import tweepy
-from .models import DB, Tweet, User
+from models import DB, Tweet, User
 
 TWITTER_AUTH = tweepy.OAuthHandler(getenv('TWITTER_CONSUMER_KEY'),
                                    getenv('TWITTER_CONSUMER_SECRET'))

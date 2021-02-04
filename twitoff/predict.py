@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.linear_model import LogisticRegression
-from .models import User
-from .twitter import BASILICA
+from models import User
+from twitter import BASILICA
 
 def predict_user(user1_name, user2_name, tweet_text):
     user1 = User.query.filter(User.name == user1_name).one()

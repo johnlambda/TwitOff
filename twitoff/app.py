@@ -1,8 +1,8 @@
 """Main application and routing logic for TwitOff."""
 from flask import Flask, render_template, request
-from .models import DB, User
-from .predict import predict_user
-from .twitter import add_or_update_user, update_all_users
+from models import DB, User
+from predict import predict_user
+from twitter import add_or_update_user, update_all_users
 from os import getenv
 from dotenv import load_dotenv
 
@@ -62,3 +62,9 @@ def create_app():
         return render_template('prediction.html', title='Prediction', message=message)
 
     return app
+
+app = create_app()
+
+if __name__ == '__main__':
+    # Threaded option to enable multiple instances for multiple user access support
+    app.run(threaded=True, port=5000)
