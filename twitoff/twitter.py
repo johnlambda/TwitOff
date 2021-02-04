@@ -3,6 +3,7 @@ from os import getenv
 import tweepy
 import os
 import spacy
+import pdb
 from .models import DB, Tweet, User
 
 TWITTER_API_KEY = getenv("TWITTER_API_KEY")
@@ -11,8 +12,8 @@ TWITTER_AUTH = tweepy.OAuthHandler(TWITTER_API_KEY, TWITTER_API_KEY_SECRET)
 TWITTER = tweepy.API(TWITTER_AUTH)
 
 # nlp model
-nlp = spacy.load(os.path.join('/'.join(os.path.realpath(__file__).split('/')[:-1]), '/my_model'))
-
+path = os.path.join('/'.join(os.path.realpath(__file__).split('/')[:-2]), 'my_model')
+nlp = spacy.load(path)
 
 def vectorize_tweet(tweet_text):
     return nlp(tweet_text).vector
