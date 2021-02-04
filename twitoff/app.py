@@ -1,75 +1,76 @@
-"""Main application and routing logic for TwitOff."""
-from flask import Flask, render_template, request
-from models import DB, User, insert_example_users
-from predict import predict_user
-from twitter import add_or_update_user, update_all_users
+"""Main app/routing file for Twitoff"""
+
 from os import getenv
-from dotenv import load_dotenv
+from flask import Flask, render_template, request
+from .models import DB, User
+from .twitter import add_or_update_user, update_all_users
+from .predict import predict_user
 
-load_dotenv()
 
+# creates application
 def create_app():
-    """Create and configure an instance of the Flask application."""
+    """Creating and configuring an instance of the Flask application"""
     app = Flask(__name__)
-    app.config['SQLALCHEMY_DATABASE_URI'] = getenv('DATABASE_URL')
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['ENV'] = getenv('FLASK_ENV')
+
+    # database and app configurations
+    app.config["SQLALCHEMY_DATABASE_URI"] = getenv("DATABASE_URL")
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+    # initilizing database
     DB.init_app(app)
-    with app.app_context():
-        DB.drop_all()
-        DB.create_all()
-    # avoiding error since we are dropping all values - no duplicate users
-        insert_example_users()
 
-    @app.route('/')
+    # decorator listens for specific endpoint visits
+    @app.route('/')  # http://127.0.0.1:5000/
     def root():
-        return render_template('base.html', title='Home', users=User.query.all())
+        # renders base.html template and passes down title and users
+        return render_template('base.html', title="Home", users=User.query.all())
 
-    @app.route('/reset')
-    def reset():
-        DB.drop_all()
-        DB.create_all()
-        return render_template('base.html', title='Reset database!')
+    @app.route('/compare', methods=["POST"])  # http://127.0.0.1:5000/compare
+    def compare():
+        user0, user1 = sorted(
+            [request.values['user1'], request.values['user2']])
 
-    @app.route('/update')
-    def update():
-        update_all_users()
-        return render_template('base.html', title='Update all users!', users=User.query.all())
+        if user0 == user1:
+            message = "Cannot compare users to themselves!"
 
-    @app.route('/user', methods=['POST'])
-    @app.route('/user/<name>', methods=['GET'])
+        else:
+            prediction = predict_user(
+                user0, user1, request.values['tweet_text'])
+            message = '{} is more likely to be said by {} than {}'.format(
+                request.values["tweet_text"], user1 if prediction else user0,
+                user0 if prediction else user1
+            )
+
+        return render_template('prediction.html', title="Prediction", message=message)
+
+    @app.route('/user', methods=["POST"])  # http://127.0.0.1:5000/user
+    # http://127.0.0.1:5000/user/<name>
+    @app.route('/user/<name>', methods=["GET"])
     def user(name=None, message=''):
-        name = name or request.values['user_name']
+        name = name or request.values["user_name"]
         try:
-            if request.method == 'POST':
+            if request.method == "POST":
                 add_or_update_user(name)
-                message = "User {} successfully added!".format(name)
+                message = "User {} was successfully added!".format(name)
+
             tweets = User.query.filter(User.name == name).one().tweets
+
         except Exception as e:
             message = "Error adding {}: {}".format(name, e)
             tweets = []
-        return render_template('user.html', title=name, tweets=tweets,
-                               message=message)
 
-    @app.route('/compare', methods=['POST'])
-    def compare(message=''):
-        user1, user2 = sorted([request.values['user1'],
-                               request.values['user2']])
-        if user1 == user2:
-            message = 'Cannot compare a user to themselves!'
-        else:
-            tweet_text = request.values['tweet_text']
-            confidence = int(predict_user(user1, user2, tweet_text) * 100)
-            if confidence >= 50:
-                message = f'"{tweet_text}" is more likely to be said by {user1} than {user2}, with {confidence}% confidence'
-            else:
-                message = f'"{tweet_text}" is more likely to be said by {user2} than {user1}, with {100-confidence}% confidence'
-        return render_template('prediction.html', title='Prediction', message=message)
+        return render_template("user.html", title=name, tweets=tweets, message=message)
 
+    @app.route('/update')  # http://127.0.0.1:5000/update
+    def update():
+        update_all_users()
+        return render_template('base.html', title="Home", users=User.query.all())
+
+    @app.route('/reset')  # http://127.0.0.1:5000/reset
+    def reset():
+        # we must create the database
+        DB.drop_all()
+        DB.create_all()
+        return render_template('base.html', users=User.query.all(),
+                               title='All Tweets updated!')
     return app
-
-app = create_app()
-
-if __name__ == '__main__':
-    # Threaded option to enable multiple instances for multiple user access support
-    app.run(threaded=True, port=5000)

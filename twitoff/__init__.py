@@ -1,3 +1,5 @@
-"""Entry point for TwitOff Flask application."""
-__all__ = ['models', 'twitter', 'app']
+__all__ = ['app', 'models', 'predict', 'twitter']
 
+from .app import create_app
+
+APP = create_app()
