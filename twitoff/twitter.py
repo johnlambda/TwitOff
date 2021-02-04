@@ -15,6 +15,7 @@ TWITTER = tweepy.API(TWITTER_AUTH)
 path = os.path.join('/'.join(os.path.realpath(__file__).split('/')[:-2]), 'my_model')
 nlp = spacy.load(path)
 
+
 def vectorize_tweet(tweet_text):
     return nlp(tweet_text).vector
 

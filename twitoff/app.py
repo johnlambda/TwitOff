@@ -1,7 +1,6 @@
 """Main app/routing file for Twitoff"""
 
 import os
-import pdb
 from flask import Flask, render_template, request
 from .models import DB, User
 from .twitter import add_or_update_user, update_all_users
