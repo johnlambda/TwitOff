@@ -24,3 +24,10 @@ class Tweet(DB.Model):
     def __repr__(self):
         return '<Tweet {}>'.format(self.text)
 
+def insert_example_users():
+    """We will get an error if we run this twice without dropping & creating"""
+    nick = User(id=1, name="nick")
+    elon = User(id=2, name="elonmusk")
+    DB.session.add(nick)
+    DB.session.add(elon)
+    DB.session.commit()

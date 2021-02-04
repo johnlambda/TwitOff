@@ -1,6 +1,6 @@
 """Main application and routing logic for TwitOff."""
 from flask import Flask, render_template, request
-from models import DB, User
+from models import DB, User, insert_example_users
 from predict import predict_user
 from twitter import add_or_update_user, update_all_users
 from os import getenv
@@ -15,6 +15,11 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['ENV'] = getenv('FLASK_ENV')
     DB.init_app(app)
+    with app.app_context():
+        DB.drop_all()
+        DB.create_all()
+    # avoiding error since we are dropping all values - no duplicate users
+        insert_example_users()
 
     @app.route('/')
     def root():
