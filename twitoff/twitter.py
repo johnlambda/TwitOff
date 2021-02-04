@@ -1,6 +1,7 @@
 """Retrieve tweets and users then create embeddings and populate DB"""
 from os import getenv
 import tweepy
+import os
 import spacy
 from .models import DB, Tweet, User
 
@@ -10,7 +11,7 @@ TWITTER_AUTH = tweepy.OAuthHandler(TWITTER_API_KEY, TWITTER_API_KEY_SECRET)
 TWITTER = tweepy.API(TWITTER_AUTH)
 
 # nlp model
-nlp = spacy.load('../../my_model')
+nlp = spacy.load(os.path.join('/'.join(os.path.realpath(__file__).split('/')[:-1]), '/my_model'))
 
 
 def vectorize_tweet(tweet_text):
