@@ -1,1 +1,1 @@
-web: gunicorn twitoff:APP -t 120 --log-file=- --log-level=verbose
+web: gunicorn twitoff:APP -t 120 --log-file=- --log-level=verbose 
